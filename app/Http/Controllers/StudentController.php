@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Student;
+use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\MockObject\Stub\Stub;
 
 class StudentController extends Controller {
@@ -18,28 +19,43 @@ class StudentController extends Controller {
 
     public function create(Request $request)
     {
-        //menerima data requst dari body
-        $nama = $request->nama;
-        $nim = $request->nim;
-        $email = $request->email;
-        $jurusan = $request->jurusan;
-
-        $student = Student::create(
-            [
-                //insert data ke database->Student
-                'nama' => $nama,
-                'nim' => $nim,
-                'email' => $email,
-                'jurusan' => $jurusan
-            ]
-        );
-
+       //menerima data requst dari body
         $data = [
-            'message' => 'data berhasil dibuat',
-            'data' => $student
+            'nama' => 'required',
+            'nim' => 'numeric|required',
+            'jurusan' => 'required',
+            'email' => 'email|required'
         ];
 
-        return response()->json($data, 201);
+        $validator = Validator::make($request->all(), $data);
+        if ($validator->fails()) {
+            $valid = [
+                'message' => 'salah satu inputan salah'
+            ];
+            return response()->json($valid, 404);
+        } else {
+            //menerima data requst dari body
+            $nama = $request->nama;
+            $nim = $request->nim;
+            $jurusan = $request->jurusan;
+            $email = $request->email;
+
+            $student = Student::create(
+                [
+                    //insert data ke database->Student
+                    'nama' => $nama,
+                    'nim' => $nim,
+                    'jurusan' => $jurusan,
+                    'email' => $email
+                ]
+            );
+
+            $data = [
+                'message' => 'Student is Created Successfully',
+                'data' => $student
+            ];
+            return response()->json($data, 201);
+        }
     }
 
     public function show($id)
